@@ -6,8 +6,8 @@ import torch
 import plotly.express as px
 
 # Load the model and the feature extractor
-feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224')
-model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224')
+feature_extractor = ViTFeatureExtractor.from_pretrained('amaye15/ViT-Standford-Dogs')
+model = ViTForImageClassification.from_pretrained('amaye15ViT-Standford-Dogs')
 
 # Function to classify the image and get sorted probabilities
 def classify_image(image):
