@@ -5,9 +5,34 @@ from transformers import ViTFeatureExtractor, ViTForImageClassification
 import torch
 import plotly.express as px
 
-# Load the model and the feature extractor
-feature_extractor = ViTFeatureExtractor.from_pretrained('amaye15/ViT-Standford-Dogs')
-model = ViTForImageClassification.from_pretrained('amaye15/ViT-Standford-Dogs')
+import os
+
+import torch
+
+# Paths for model and feature extractor
+model_path = 'model'
+feature_extractor_path = 'feature_extractor'
+
+# Check if model and feature extractor exist
+if not os.path.exists(model_path) or not os.path.exists(feature_extractor_path):
+    # Download the feature extractor
+    feature_extractor = ViTFeatureExtractor.from_pretrained('amaye15/ViT-Standford-Dogs')
+    feature_extractor.save_pretrained(feature_extractor_path)
+
+    # Download the model
+    model = ViTForImageClassification.from_pretrained('amaye15/ViT-Standford-Dogs')
+
+    # Convert model to FP16
+    model = model.to(dtype=torch.float16)
+
+    # Save the FP16 model
+    model.save_pretrained(model_path)
+else:
+    # Load locally saved model and feature extractor
+    feature_extractor = ViTFeatureExtractor.from_pretrained(feature_extractor_path)
+    model = ViTForImageClassification.from_pretrained(model_path)
+
+
 
 # Function to classify the image and get sorted probabilities
 def classify_image(image):
