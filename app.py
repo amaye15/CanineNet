@@ -7,25 +7,27 @@ from transformers import ViTImageProcessor, ViTForImageClassification, Pipeline
 import streamlit as st
 import plotly.express as px
 
+model_path = "model"
+feature_extractor_path = "feature_extractor"
 
 # Check if model and feature extractor exist
-# if not os.path.exists(model_path) or not os.path.exists(feature_extractor_path):
+if not os.path.exists(model_path) or not os.path.exists(feature_extractor_path):
     # Download the feature extractor
-feature_extractor = ViTImageProcessor.from_pretrained('amaye15/ViT-Standford-Dogs',)
-#     # feature_extractor.save_pretrained(feature_extractor_path)
+    feature_extractor = ViTImageProcessor.from_pretrained('amaye15/ViT-Standford-Dogs',)
+    feature_extractor.save_pretrained(feature_extractor_path)
 
-# Download the model
-model = ViTForImageClassification.from_pretrained('amaye15/ViT-Standford-Dogs')
+    # Download the model
+    model = ViTForImageClassification.from_pretrained('amaye15/ViT-Standford-Dogs')
 
-#     # Convert model to FP16
-#     model = model.to(dtype=torch.float16)
+    # Convert model to FP16
+    model = model.to(dtype=torch.float16)
 
-#     # Save the FP16 model
-#     model.save_pretrained(model_path)
-# else:
-#     # Load locally saved model and feature extractor
-#     feature_extractor = ViTImageProcessor.from_pretrained(feature_extractor_path)
-#     model = ViTForImageClassification.from_pretrained(model_path)
+    # Save the FP16 model
+    model.save_pretrained(model_path, max_shard_size="50MB")
+else:
+    # Load locally saved model and feature extractor
+    feature_extractor = ViTImageProcessor.from_pretrained(feature_extractor_path)
+    model = ViTForImageClassification.from_pretrained(model_path)
 
 # Function to classify the image and get sorted probabilities
 def classify_image(image):
