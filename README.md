@@ -1,6 +1,7 @@
 # CanineNet: Dog Breed Classification for 'Le Refuge'
 
 **Model:** [Here](https://huggingface.co/amaye15/ViT-Standford-Dogs)
+
 **App:** [Here](https://caninenet.streamlit.app/)
 
 ## Project Overview
