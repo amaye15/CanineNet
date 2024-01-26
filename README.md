@@ -1,5 +1,8 @@
 # CanineNet: Dog Breed Classification for 'Le Refuge'
 
+**Model:** [Here](https://huggingface.co/amaye15/ViT-Standford-Dogs)
+**App:** [Here](https://caninenet.streamlit.app/)
+
 ## Project Overview
 As a volunteer at 'Le Refuge,' a local animal protection association, I embarked on a mission to develop a machine learning tool that could aid in the classification of dog breeds from their vast image database. The project was inspired by my own experience finding my beloved pet, Snooky, through this association. To give back, I aimed to streamline their data management process by implementing an advanced breed classification algorithm.
 
