@@ -14,8 +14,8 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
+          git config --global user.name 'amaye15'
+          git config --global user.email 'andrewmayes14@hotmail.com'
 
       - name: Create empty commit and push
         run: |
