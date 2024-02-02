@@ -1,0 +1,23 @@
+name: Reboot Streamlit App
+
+on:
+  schedule:
+    # Runs at midnight UTC
+    - cron: '0 0 * * *'
+
+jobs:
+  reboot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+
+      - name: Create empty commit and push
+        run: |
+          git commit --allow-empty -m "Trigger Streamlit app reboot"
+          git push
