@@ -23,3 +23,4 @@ jobs:
         run: |
           git commit --allow-empty -m "Trigger Streamlit app reboot"
           git push
+
