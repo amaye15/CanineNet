@@ -2,7 +2,7 @@ name: Reboot Streamlit App
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # This will run the workflow every night at midnight UTC
+    - cron: '0 * * * *'  # This will run the workflow every night at midnight UTC
   push:
     branches:
       - main  # Also trigger on push to main branch
