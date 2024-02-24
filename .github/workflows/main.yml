@@ -1,26 +1,26 @@
-name: Reboot Streamlit App
+# name: Reboot Streamlit App
 
-on:
-  schedule:
-    - cron: '0 * * * *'  # This will run the workflow every night at midnight UTC
-  push:
-    branches:
-      - main  # Also trigger on push to main branch
+# on:
+#   schedule:
+#     - cron: '0 * * * *'  # This will run the workflow every night at midnight UTC
+#   push:
+#     branches:
+#       - main  # Also trigger on push to main branch
 
-jobs:
-  reboot:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+# jobs:
+#   reboot:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v2
 
-      - name: Configure Git
-        run: |
-          git config --global user.name 'amaye15'
-          git config --global user.email 'andrewmayes14@hotmail.com'
+#       - name: Configure Git
+#         run: |
+#           git config --global user.name 'amaye15'
+#           git config --global user.email 'andrewmayes14@hotmail.com'
 
-      - name: Create empty commit and push
-        run: |
-          git commit --allow-empty -m "Trigger Streamlit app reboot"
-          git push
+#       - name: Create empty commit and push
+#         run: |
+#           git commit --allow-empty -m "Trigger Streamlit app reboot"
+#           git push
 
