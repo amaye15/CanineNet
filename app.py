@@ -1,67 +1,123 @@
-import os
-import torch
+import io
+import time
+import base64
+import requests
 
 from PIL import Image
-from transformers import ViTImageProcessor, ViTForImageClassification, Pipeline
 
+import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-model_path = "model"
-feature_extractor_path = "feature_extractor"
+st.set_page_config(layout="wide")
 
-# Check if model and feature extractor exist
-if not os.path.exists(model_path) or not os.path.exists(feature_extractor_path):
-    # Download the feature extractor
-    feature_extractor = ViTImageProcessor.from_pretrained('amaye15/ViT-Standford-Dogs',)
-    feature_extractor.save_pretrained(feature_extractor_path)
+MODELS = [
+    "amaye15/ViT-Standford-Dogs",
+    "amaye15/google-vit-base-patch16-224-batch32-lr0.005-standford-dogs",
+    "amaye15/microsoft-swinv2-base-patch4-window16-256-batch32-lr0.005-standford-dogs",
+    "amaye15/google-siglip-base-patch16-224-batch32-lr0.005-standford-dogs",
+    "amaye15/google-vit-base-patch16-224-batch64-lr0.005-standford-dogs",
+    "amaye15/google-siglip-base-patch16-224-batch64-lr5e-05-standford-dogs",
+    "amaye15/microsoft-swinv2-base-patch4-window16-256-batch32-lr5e-05-standford-dogs",
+    "amaye15/google-vit-base-patch16-224-batch32-lr5e-05-standford-dogs",
+    "amaye15/google-vit-base-patch16-224-batch32-lr0.0005-standford-dogs",
+]
 
-    # Download the model
-    model = ViTForImageClassification.from_pretrained('amaye15/ViT-Standford-Dogs')
+MODELS = list(set(MODELS))
 
-    # Convert model to FP16
-    model = model.to(dtype=torch.float16)
+API_URL = "https://api-inference.huggingface.co/models/{model}"
 
-    # Save the FP16 model
-    model.save_pretrained(model_path, max_shard_size="50MB")
-else:
-    # Load locally saved model and feature extractor
-    feature_extractor = ViTImageProcessor.from_pretrained(feature_extractor_path)
-    model = ViTForImageClassification.from_pretrained(model_path)
-
-# Function to classify the image and get sorted probabilities
-def classify_image(image):
-    if image.mode != 'RGB':
-        image = image.convert('RGB')
-
-    #image = image.resize((224, 224))
-    inputs = feature_extractor(images=image, return_tensors="pt")
-    outputs = model(**inputs)
-    logits = outputs.logits
-
-    # Convert logits to probabilities
-    probs = torch.nn.functional.softmax(logits, dim=-1)[0]
-
-    # Sort probabilities and labels
-    sorted_indices = torch.argsort(probs, descending=True)
-    sorted_probs = probs[sorted_indices].detach().numpy()
-    sorted_labels = [model.config.id2label[idx.item()] for idx in sorted_indices]
-
-    return sorted_probs, sorted_labels
 
 # Function to plot the bar chart using Plotly with classes on the y-axis
-def plot_bar_chart(sorted_probs, sorted_labels):
-    top_n = 9
-    fig = px.bar(y=sorted_labels[:top_n], x=sorted_probs[:top_n], labels={'y':'Class', 'x':'Probability'}, title='Class Probabilities')
-    fig.update_layout(yaxis={'categoryorder':'total ascending'})
+def plot_bar_chart(prediction, model_name):
+    # top_n = 9
+    df = pd.DataFrame(prediction)
+    fig = px.bar(
+        df,
+        y="label",
+        x="score",
+        labels={"y": "Class", "x": "Probability"},
+        title=model_name,
+    )
+    fig.update_layout(yaxis={"categoryorder": "total ascending"})
     st.plotly_chart(fig)
 
 
-# Creating the Streamlit interface
-st.title('CanineNet')
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+# Function to convert image to base64
+def image_to_base64(image):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str
+
+
+def query(base64_image, model_name):
+    headers = {
+        "Authorization": "Bearer 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",
+        "Content-Type": "application/json",
+    }
+    data = {"inputs": base64_image}
+    while True:
+        response = requests.post(
+            API_URL.format(model=model_name), headers=headers, json=data
+        )
+
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 503:
+            # If the model is loading, wait and retry
+            print("Model is loading, waiting for it to be ready...")
+            time.sleep(5)  # Wait for 5 seconds before retrying
+        else:
+            # If there is another error, raise an exception or handle it appropriately
+            print(f"Error: {response}")
+            response.raise_for_status()
+
+
+_, middle, _ = st.columns([0.2, 0.6, 0.2])
+
+with middle:
+    # Creating the Streamlit interface
+    st.title("CanineNet Area: Model vs Model")
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+
+model_one_select_column, model_two_select_column = st.columns(2)
+
+with model_one_select_column:
+    model_one = st.selectbox("Select Model 1:", MODELS)
+
+with model_two_select_column:
+    model_two = st.selectbox("Select Model 2:", MODELS[::-1])
+
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image.', use_column_width=True)
-    sorted_probs, sorted_labels = classify_image(image)
-    plot_bar_chart(sorted_probs, sorted_labels)
+
+    _, middle_image, _ = st.columns(3)
+
+    (model_one_prediction_column, model_two_prediction_column) = st.columns(2)
+
+    with middle_image:
+        st.image(image, caption="Uploaded Image.", use_column_width=True)
+    image_base64 = image_to_base64(image)
+
+    with model_one_prediction_column:
+        output_one = query(image_base64, model_one)
+        plot_bar_chart(output_one, model_one)
+
+    with model_two_prediction_column:
+        output_two = query(image_base64, model_two)
+        plot_bar_chart(output_two, model_two)
+
+    # sorted_probs, sorted_labels = classify_image(image)
+    # plot_bar_chart(sorted_probs, sorted_labels)
+
+    # # Query the model
+    # output = query(image_base64)
+
+    # print(type(output))
+    # plot_bar_chart(output)
+
+    # Display the output
+    # st.write(output)
