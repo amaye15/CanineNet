@@ -21,6 +21,8 @@ MODELS = [
     "amaye15/microsoft-swinv2-base-patch4-window16-256-batch32-lr5e-05-standford-dogs",
     "amaye15/google-vit-base-patch16-224-batch32-lr5e-05-standford-dogs",
     "amaye15/google-vit-base-patch16-224-batch32-lr0.0005-standford-dogs",
+    "amaye15/microsoft-resnet-50-batch32-lr0.0005-standford-dogs",
+    "amaye15/microsoft-resnet-50-batch32-lr0.005-standford-dogs",
 ]
 
 MODELS = list(set(MODELS))
